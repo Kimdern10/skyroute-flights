@@ -3,11 +3,11 @@
 namespace App\Services\Flights;
 
 use App\Models\Setting;
+use Carbon\CarbonImmutable;
 use DateInterval;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Http\Client\Response;
-use Carbon\CarbonImmutable;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
