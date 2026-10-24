@@ -55,7 +55,9 @@ new class extends Component {
     public function offer(): ?FlightOffer
     {
         try {
-            return Cache::remember('flight-offer:'.$this->offerId, now()->addMinutes(5), fn (): ?FlightOffer => app(FlightProvider::class)->find($this->offerId));
+            $offer = Cache::remember('flight-offer:'.$this->offerId, now()->addMinutes(5), fn (): ?array => app(FlightProvider::class)->find($this->offerId)?->toArray());
+
+            return $offer ? FlightOffer::fromArray($offer) : null;
         } catch (FlightProviderException $exception) {
             $this->error ??= $exception->getMessage();
 

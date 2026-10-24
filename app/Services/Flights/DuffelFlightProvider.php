@@ -7,7 +7,7 @@ use DateInterval;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Http\Client\Response;
-use Illuminate\Support\Carbon;
+use Carbon\CarbonImmutable;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -165,8 +165,8 @@ class DuffelFlightProvider implements FlightProvider
             originName: (string) ($segment['origin']['city_name'] ?? $segment['origin']['name'] ?? $segment['origin']['iata_code']),
             destination: (string) $segment['destination']['iata_code'],
             destinationName: (string) ($segment['destination']['city_name'] ?? $segment['destination']['name'] ?? $segment['destination']['iata_code']),
-            departsAt: Carbon::parse($segment['departing_at']),
-            arrivesAt: Carbon::parse($segment['arriving_at']),
+            departsAt: CarbonImmutable::parse($segment['departing_at']),
+            arrivesAt: CarbonImmutable::parse($segment['arriving_at']),
             aircraft: $segment['aircraft']['name'] ?? null,
         ), $slice['segments']);
 
@@ -181,7 +181,7 @@ class DuffelFlightProvider implements FlightProvider
             passengerIds: array_values(array_map(fn (array $passenger): string => (string) $passenger['id'], $offer['passengers'] ?? [])),
             cabin: (string) ($slice['segments'][0]['passengers'][0]['cabin_class_marketing_name'] ?? 'Economy'),
             durationMinutes: $this->minutes($slice['duration'] ?? null, $segments),
-            expiresAt: isset($offer['expires_at']) ? Carbon::parse($offer['expires_at']) : null,
+            expiresAt: isset($offer['expires_at']) ? CarbonImmutable::parse($offer['expires_at']) : null,
         );
     }
 

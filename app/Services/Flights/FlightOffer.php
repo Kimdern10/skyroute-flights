@@ -2,7 +2,7 @@
 
 namespace App\Services\Flights;
 
-use Illuminate\Support\Carbon;
+use Carbon\CarbonImmutable;
 
 /**
  * A priced, bookable flight returned by the airline API.
@@ -24,8 +24,50 @@ final readonly class FlightOffer
         public array $passengerIds,
         public string $cabin,
         public int $durationMinutes,
-        public ?Carbon $expiresAt = null,
+        public ?CarbonImmutable $expiresAt = null,
     ) {}
+
+    /**
+     * Plain values, so the offer can be cached (the cache only stores arrays, not objects).
+     *
+     * @return array<string, mixed>
+     */
+    public function toArray(): array
+    {
+        return [
+            'id' => $this->id,
+            'amount' => $this->amount,
+            'currency' => $this->currency,
+            'airline_name' => $this->airlineName,
+            'airline_code' => $this->airlineCode,
+            'airline_logo' => $this->airlineLogo,
+            'segments' => array_map(fn (FlightSegment $segment): array => $segment->toArray(), $this->segments),
+            'passenger_ids' => $this->passengerIds,
+            'cabin' => $this->cabin,
+            'duration_minutes' => $this->durationMinutes,
+            'expires_at' => $this->expiresAt?->toIso8601String(),
+        ];
+    }
+
+    /**
+     * @param  array<string, mixed>  $offer
+     */
+    public static function fromArray(array $offer): self
+    {
+        return new self(
+            id: $offer['id'],
+            amount: $offer['amount'],
+            currency: $offer['currency'],
+            airlineName: $offer['airline_name'],
+            airlineCode: $offer['airline_code'],
+            airlineLogo: $offer['airline_logo'],
+            segments: array_map(FlightSegment::fromArray(...), $offer['segments']),
+            passengerIds: $offer['passenger_ids'],
+            cabin: $offer['cabin'],
+            durationMinutes: $offer['duration_minutes'],
+            expiresAt: $offer['expires_at'] ? CarbonImmutable::parse($offer['expires_at']) : null,
+        );
+    }
 
     public function first(): FlightSegment
     {

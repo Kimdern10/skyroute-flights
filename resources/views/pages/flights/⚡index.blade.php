@@ -83,7 +83,11 @@ new class extends Component {
         $provider = app(FlightProvider::class);
 
         try {
-            $offers = Cache::remember($search->cacheKey(), now()->addMinutes(10), fn (): Collection => $provider->search($search));
+            $offers = collect(Cache::remember(
+                $search->cacheKey(),
+                now()->addMinutes(10),
+                fn (): array => $provider->search($search)->map(fn (FlightOffer $offer): array => $offer->toArray())->all(),
+            ))->map(FlightOffer::fromArray(...));
         } catch (FlightProviderException $exception) {
             $this->error = $exception->getMessage();
 

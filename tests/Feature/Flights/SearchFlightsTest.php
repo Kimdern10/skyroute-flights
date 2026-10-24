@@ -40,9 +40,20 @@ test('the results page lists flights with our price', function () {
     searchPage()
         ->assertSee('Duffel Airways')
         ->assertSee('ZZ 117')
+        ->assertSeeInOrder(['08:25', '8h 00m', '11:25'])
         ->assertSee('$435.00')
         ->assertSee('Book now')
         ->assertDontSee('Fully booked');
+});
+
+test('results read back from the database cache still show', function () {
+    config(['cache.default' => 'database']);
+    fakeDuffel();
+
+    searchPage();
+    searchPage()->assertSee('ZZ 117')->assertSee('$435.00');
+
+    Http::assertSentCount(1);
 });
 
 test('a sold-out flight shows as fully booked and cannot be booked', function () {
