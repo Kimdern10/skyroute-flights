@@ -1,4 +1,4 @@
-<x-layouts::site>
+<x-layouts::site current="home">
     <section class="hero">
         <div class="sky" aria-hidden="true">
             <div class="stars"></div>

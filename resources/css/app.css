@@ -9,7 +9,7 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+    --font-sans: 'Sora', 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
 
     --color-zinc-50: #fafafa;
     --color-zinc-100: #f5f5f5;
@@ -23,16 +23,16 @@
     --color-zinc-900: #171717;
     --color-zinc-950: #0a0a0a;
 
-    --color-accent: var(--color-neutral-800);
-    --color-accent-content: var(--color-neutral-800);
+    --color-accent: #ff7a1a;
+    --color-accent-content: #e0600a;
     --color-accent-foreground: var(--color-white);
 }
 
 @layer theme {
     .dark {
-        --color-accent: var(--color-white);
-        --color-accent-content: var(--color-white);
-        --color-accent-foreground: var(--color-neutral-800);
+        --color-accent: #ff7a1a;
+        --color-accent-content: #ffb27a;
+        --color-accent-foreground: var(--color-white);
     }
 }
 
@@ -64,3 +64,48 @@ select:focus[data-flux-control] {
 /* \[:where(&)\]:size-4 {
     @apply size-4;
 } */
+
+/* Login and sign-up pages: brand panel with drifting clouds and a plane on a dotted route */
+.auth-sky {
+    background: radial-gradient(circle at 80% 10%, #3d7be8 0%, transparent 55%), linear-gradient(160deg, #0b3d91, #0a2a66 70%, #071a3d);
+}
+
+.auth-route {
+    position: absolute;
+    top: 14%;
+    right: -20px;
+    width: 78%;
+}
+
+.auth-cloud {
+    position: absolute;
+    width: 200px;
+    height: 58px;
+    border-radius: 999px;
+    background: rgb(255 255 255 / .12);
+    animation: auth-drift linear infinite;
+}
+
+.auth-cloud::before {
+    content: '';
+    position: absolute;
+    left: 40px;
+    top: -40px;
+    width: 96px;
+    height: 96px;
+    border-radius: 50%;
+    background: inherit;
+}
+
+.auth-cloud--1 { top: 46%; animation-duration: 60s; animation-delay: -20s; }
+.auth-cloud--2 { top: 8%; transform: scale(.6); animation-duration: 85s; animation-delay: -55s; }
+
+.auth-card { animation: auth-rise .6s cubic-bezier(.2, .8, .2, 1) both; }
+
+@keyframes auth-drift { from { left: -240px; } to { left: 110%; } }
+@keyframes auth-rise { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
+
+@media (prefers-reduced-motion: reduce) {
+    .auth-cloud, .auth-card { animation: none; }
+    .auth-route animateMotion { display: none; }
+}

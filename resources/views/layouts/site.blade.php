@@ -8,7 +8,7 @@
     $site = \App\Models\Setting::values();
     $pageTitle = filled($title) ? $title.' · '.$site['business_name'] : $site['business_name'].' · Book cheap flights worldwide';
     $user = auth()->user();
-    $links = ['flights' => ['Flights', route('flights.index')], 'my-booking' => ['My booking', route('my-booking')]];
+    $links = ['home' => ['Home', route('home')], 'flights' => ['Flights', route('flights.index')], 'my-booking' => ['My booking', route('my-booking')]];
 
     if ($user) {
         $links['trips'] = ['My trips', route('trips')];
