@@ -11,22 +11,50 @@
             </flux:sidebar.header>
 
             <flux:sidebar.nav>
-                <flux:sidebar.group :heading="__('Platform')" class="grid">
+                <flux:sidebar.group :heading="__('My account')" class="grid">
                     <flux:sidebar.item icon="home" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>
-                        {{ __('Dashboard') }}
+                        {{ __('Overview') }}
+                    </flux:sidebar.item>
+                    <flux:sidebar.item icon="ticket" :href="route('trips')" :current="request()->routeIs('trips')" wire:navigate>
+                        {{ __('My trips') }}
+                    </flux:sidebar.item>
+                    <flux:sidebar.item icon="wallet" :href="route('wallet')" :current="request()->routeIs('wallet')" wire:navigate>
+                        {{ __('Wallet') }}
                     </flux:sidebar.item>
                 </flux:sidebar.group>
+
+                @if (auth()->user()->is_admin)
+                    <flux:sidebar.group :heading="__('Admin')" class="grid">
+                        <flux:sidebar.item icon="chart-bar" :href="route('admin.dashboard')" :current="request()->routeIs('admin.dashboard')" wire:navigate>
+                            {{ __('Dashboard') }}
+                        </flux:sidebar.item>
+                        <flux:sidebar.item icon="clipboard-document-list" :href="route('admin.bookings.index')" :current="request()->routeIs('admin.bookings.*')" wire:navigate>
+                            {{ __('Bookings') }}
+                        </flux:sidebar.item>
+                        <flux:sidebar.item icon="paper-airplane" :href="route('admin.flights')" :current="request()->routeIs('admin.flights')" wire:navigate>
+                            {{ __('Flights & seats') }}
+                        </flux:sidebar.item>
+                        <flux:sidebar.item icon="banknotes" :href="route('admin.top-ups')" :current="request()->routeIs('admin.top-ups')" wire:navigate :badge="\App\Models\TopUpRequest::query()->where('status', 'pending')->count() ?: null">
+                            {{ __('Top-ups') }}
+                        </flux:sidebar.item>
+                        <flux:sidebar.item icon="users" :href="route('admin.customers')" :current="request()->routeIs('admin.customers')" wire:navigate>
+                            {{ __('Customers') }}
+                        </flux:sidebar.item>
+                        <flux:sidebar.item icon="cog-6-tooth" :href="route('admin.settings')" :current="request()->routeIs('admin.settings')" wire:navigate>
+                            {{ __('Pricing & API') }}
+                        </flux:sidebar.item>
+                    </flux:sidebar.group>
+                @endif
             </flux:sidebar.nav>
 
             <flux:spacer />
 
             <flux:sidebar.nav>
-                <flux:sidebar.item icon="folder-git-2" href="https://github.com/laravel/livewire-starter-kit" target="_blank">
-                    {{ __('Repository') }}
+                <flux:sidebar.item icon="magnifying-glass" :href="route('flights.index')">
+                    {{ __('Search flights') }}
                 </flux:sidebar.item>
-
-                <flux:sidebar.item icon="book-open-text" href="https://laravel.com/docs/starter-kits#livewire" target="_blank">
-                    {{ __('Documentation') }}
+                <flux:sidebar.item icon="globe-alt" :href="route('home')">
+                    {{ __('Back to website') }}
                 </flux:sidebar.item>
             </flux:sidebar.nav>
 

@@ -28,6 +28,11 @@ return [
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
 
+    'duffel' => [
+        'token' => env('DUFFEL_ACCESS_TOKEN'),
+        'url' => env('DUFFEL_URL', 'https://api.duffel.com'),
+    ],
+
     'slack' => [
         'notifications' => [
             'bot_user_oauth_token' => env('SLACK_BOT_USER_OAUTH_TOKEN'),

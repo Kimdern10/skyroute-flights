@@ -36,6 +36,23 @@ class UserFactory extends Factory
         ];
     }
 
+    public function admin(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'is_admin' => true,
+        ]);
+    }
+
+    /**
+     * Give the customer money in their wallet (in dollars).
+     */
+    public function withBalance(int $dollars): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'balance_cents' => $dollars * 100,
+        ]);
+    }
+
     /**
      * Indicate that the model's email address should be unverified.
      */

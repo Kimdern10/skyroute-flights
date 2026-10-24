@@ -1,0 +1,11 @@
+<svg {{ $attributes->merge(['class' => 'logo-mark']) }} viewBox="0 0 40 40" aria-hidden="true">
+    <defs>
+        <linearGradient id="sr-logo" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#1d5fd1"/>
+            <stop offset="1" stop-color="#0b3d91"/>
+        </linearGradient>
+    </defs>
+    <rect width="40" height="40" rx="11" fill="url(#sr-logo)"/>
+    <path d="M9 27c6-1 13-6 20-15" fill="none" stroke="#ff8a3d" stroke-width="2.4" stroke-linecap="round" stroke-dasharray="1 4.2"/>
+    <path d="M30.6 9.2c.9-.6 2-.1 2.1.9.1.5-.1 1-.5 1.4l-4.4 4.1 1.6 8.1-1.8 1.2-3.6-6.6-3.7 3.4.4 2.9-1.3.9-1.8-3.4-3.6-1.6.9-1.3 2.9.2 3.5-3.6-6.8-3.2 1.1-1.9 8.2 1.3 4.2-4.2z" fill="#fff"/>
+</svg>
