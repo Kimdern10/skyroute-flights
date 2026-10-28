@@ -91,7 +91,7 @@ class BookFlight
                 'contact_phone' => $phone,
             ]);
 
-            foreach (array_values($passengers) as $index => $passenger) {
+            foreach ($passengers as $index => $passenger) {
                 $booking->passengers()->create([...$passenger, 'provider_passenger_id' => $offer->passengerIds[$index] ?? null]);
             }
 
@@ -109,14 +109,14 @@ class BookFlight
         try {
             $order = $this->provider->book(
                 $offer,
-                $booking->passengers->map(fn ($passenger): array => [
+                array_values($booking->passengers->map(fn ($passenger): array => [
                     'provider_passenger_id' => (string) $passenger->provider_passenger_id,
                     'title' => $passenger->title,
                     'given_name' => $passenger->given_name,
                     'family_name' => $passenger->family_name,
                     'gender' => $passenger->gender,
                     'born_on' => $passenger->born_on->toDateString(),
-                ])->all(),
+                ])->all()),
                 $email,
                 $phone,
             );
@@ -162,8 +162,9 @@ class BookFlight
 
             $flights = $booking->flights()->orderBy('flights.id')->lockForUpdate()->get();
 
+            // Every flight of the journey held one seat per passenger.
             foreach ($flights as $flight) {
-                $flight->decrement('seats_booked', min($flight->seats_booked, $flight->pivot->seats));
+                $flight->decrement('seats_booked', min($flight->seats_booked, $booking->passengers_count));
             }
 
             $user = User::query()->whereKey($booking->user_id)->lockForUpdate()->firstOrFail();

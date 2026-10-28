@@ -35,7 +35,7 @@ class BookingController extends Controller
      */
     public function lookup(Request $request, Booking $booking): View
     {
-        return $this->page($booking, URL::temporarySignedRoute('my-booking.ticket', now()->addMinutes(30), $booking));
+        return $this->page($booking, URL::temporarySignedRoute('my-booking.ticket', now()->addMinutes(30), ['booking' => $booking]));
     }
 
     public function lookupTicket(Booking $booking): Response

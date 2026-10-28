@@ -3,6 +3,7 @@
 namespace App\Services\Flights;
 
 use Carbon\CarbonImmutable;
+use InvalidArgumentException;
 
 /**
  * A priced, bookable flight returned by the airline API.
@@ -10,7 +11,7 @@ use Carbon\CarbonImmutable;
 final readonly class FlightOffer
 {
     /**
-     * @param  list<FlightSegment>  $segments
+     * @param  non-empty-list<FlightSegment>  $segments
      * @param  list<string>  $passengerIds  The airline's id for each seat in the offer.
      */
     public function __construct(
@@ -54,6 +55,12 @@ final readonly class FlightOffer
      */
     public static function fromArray(array $offer): self
     {
+        $segments = array_values(array_map(FlightSegment::fromArray(...), $offer['segments']));
+
+        if ($segments === []) {
+            throw new InvalidArgumentException('A flight offer needs at least one flight.');
+        }
+
         return new self(
             id: $offer['id'],
             amount: $offer['amount'],
@@ -61,7 +68,7 @@ final readonly class FlightOffer
             airlineName: $offer['airline_name'],
             airlineCode: $offer['airline_code'],
             airlineLogo: $offer['airline_logo'],
-            segments: array_map(FlightSegment::fromArray(...), $offer['segments']),
+            segments: $segments,
             passengerIds: $offer['passenger_ids'],
             cabin: $offer['cabin'],
             durationMinutes: $offer['duration_minutes'],

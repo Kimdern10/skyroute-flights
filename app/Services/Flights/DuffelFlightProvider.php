@@ -39,7 +39,7 @@ class DuffelFlightProvider implements FlightProvider
                 ],
             ]));
 
-        return collect($response->json('data.offers', []))
+        return $response->collect('data.offers')
             ->map(fn (array $offer): ?FlightOffer => $this->toOffer($offer))
             ->filter()
             ->sortBy(fn (FlightOffer $offer): float => (float) $offer->amount)
@@ -157,7 +157,7 @@ class DuffelFlightProvider implements FlightProvider
             return null;
         }
 
-        $segments = array_map(fn (array $segment): FlightSegment => new FlightSegment(
+        $segments = array_values(array_map(fn (array $segment): FlightSegment => new FlightSegment(
             carrierCode: (string) ($segment['marketing_carrier']['iata_code'] ?? $offer['owner']['iata_code'] ?? ''),
             carrierName: (string) ($segment['marketing_carrier']['name'] ?? $offer['owner']['name'] ?? ''),
             flightNumber: (string) ($segment['marketing_carrier_flight_number'] ?? ''),
@@ -168,7 +168,11 @@ class DuffelFlightProvider implements FlightProvider
             departsAt: CarbonImmutable::parse($segment['departing_at']),
             arrivesAt: CarbonImmutable::parse($segment['arriving_at']),
             aircraft: $segment['aircraft']['name'] ?? null,
-        ), $slice['segments']);
+        ), $slice['segments']));
+
+        if ($segments === []) {
+            return null;
+        }
 
         return new FlightOffer(
             id: (string) $offer['id'],
@@ -186,7 +190,7 @@ class DuffelFlightProvider implements FlightProvider
     }
 
     /**
-     * @param  list<FlightSegment>  $segments
+     * @param  non-empty-list<FlightSegment>  $segments
      */
     private function minutes(?string $isoDuration, array $segments): int
     {
@@ -195,7 +199,7 @@ class DuffelFlightProvider implements FlightProvider
 
             return $interval->d * 1440 + $interval->h * 60 + $interval->i;
         } catch (\Throwable) {
-            return (int) $segments[0]->departsAt->diffInMinutes(end($segments)->arrivesAt);
+            return (int) $segments[0]->departsAt->diffInMinutes($segments[array_key_last($segments)]->arrivesAt);
         }
     }
 }

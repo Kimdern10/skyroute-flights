@@ -42,7 +42,7 @@ new class extends Component {
             return;
         }
 
-        $this->redirect(URL::temporarySignedRoute('my-booking.show', now()->addMinutes(30), $booking));
+        $this->redirect(URL::temporarySignedRoute('my-booking.show', now()->addMinutes(30), ['booking' => $booking]));
     }
 
     public function render()
