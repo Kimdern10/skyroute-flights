@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Notifications\VerifyEmailCode;
 use App\Support\Money;
 use Database\Factories\UserFactory;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
@@ -12,6 +13,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Laravel\Fortify\Contracts\PasskeyUser;
 use Laravel\Fortify\PasskeyAuthenticatable;
@@ -22,6 +24,8 @@ use Laravel\Fortify\TwoFactorAuthenticatable;
  * @property string $name
  * @property string $email
  * @property Carbon|null $email_verified_at
+ * @property string|null $email_verification_code
+ * @property Carbon|null $email_verification_code_expires_at
  * @property string|null $phone
  * @property string $password
  * @property bool $is_admin
@@ -34,11 +38,16 @@ use Laravel\Fortify\TwoFactorAuthenticatable;
  * @property Carbon|null $updated_at
  */
 #[Fillable(['name', 'email', 'password'])]
-#[Hidden(['password', 'two_factor_secret', 'two_factor_recovery_codes', 'remember_token'])]
+#[Hidden(['password', 'two_factor_secret', 'two_factor_recovery_codes', 'remember_token', 'email_verification_code'])]
 class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
 {
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable, PasskeyAuthenticatable, TwoFactorAuthenticatable;
+
+    /**
+     * How long an emailed verification code works.
+     */
+    public const int VERIFICATION_CODE_MINUTES = 15;
 
     /**
      * @var array<string, mixed>
@@ -57,6 +66,7 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
     {
         return [
             'email_verified_at' => 'datetime',
+            'email_verification_code_expires_at' => 'datetime',
             'password' => 'hashed',
             'is_admin' => 'boolean',
             'balance_cents' => 'integer',
@@ -90,6 +100,43 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
     public function balance(): string
     {
         return Money::format($this->balance_cents);
+    }
+
+    /**
+     * Email a new 6-digit code instead of a link. Only a hash of the code is saved.
+     */
+    public function sendEmailVerificationNotification(): void
+    {
+        $code = str_pad((string) random_int(0, 999_999), 6, '0', STR_PAD_LEFT);
+
+        $this->forceFill([
+            'email_verification_code' => Hash::make($code),
+            'email_verification_code_expires_at' => now()->addMinutes(self::VERIFICATION_CODE_MINUTES),
+        ])->save();
+
+        $this->notify(new VerifyEmailCode($code, self::VERIFICATION_CODE_MINUTES));
+    }
+
+    /**
+     * Confirm the email address if the code is right and has not expired.
+     */
+    public function verifyEmailWithCode(string $code): bool
+    {
+        if (
+            $this->email_verification_code === null
+            || $this->email_verification_code_expires_at?->isPast() !== false
+            || ! Hash::check(preg_replace('/\D/', '', $code), $this->email_verification_code)
+        ) {
+            return false;
+        }
+
+        $this->forceFill([
+            'email_verified_at' => now(),
+            'email_verification_code' => null,
+            'email_verification_code_expires_at' => null,
+        ])->save();
+
+        return true;
     }
 
     /**
