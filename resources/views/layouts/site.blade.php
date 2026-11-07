@@ -23,8 +23,10 @@
         <title>{{ $pageTitle }}</title>
         <meta name="description" content="{{ $description ?: $site['tagline'] }}">
         <meta name="theme-color" content="#0b3d91">
-        <link rel="icon" href="/favicon.svg" type="image/svg+xml">
         <link rel="icon" href="/favicon.ico" sizes="any">
+        <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+        <link rel="manifest" href="/site.webmanifest">
         <script>document.documentElement.classList.add('js'); try { var t = localStorage.getItem('sr-theme'); if (t === 'light' || t === 'dark') { document.documentElement.dataset.theme = t; } } catch (e) {}</script>
         @fonts('sora')
         @vite(['resources/css/site.css', 'resources/js/site.js'])
