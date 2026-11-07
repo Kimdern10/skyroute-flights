@@ -1,14 +1,11 @@
 <?php
 
+use App\Actions\ReviewTopUp;
 use App\Enums\TopUpStatus;
-use App\Enums\WalletTransactionType;
 use App\Models\TopUpRequest;
-use App\Models\User;
-use App\Services\Wallet;
 use App\Support\Money;
 use Flux\Flux;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Title;
 use Livewire\Attributes\Url;
@@ -39,45 +36,24 @@ new #[Title('Top-ups')] class extends Component {
             ->paginate(20);
     }
 
-    public function approve(int $id, Wallet $wallet): void
+    public function approve(int $id, ReviewTopUp $review): void
     {
-        $this->review($id, TopUpStatus::Approved, $wallet);
+        $this->review($id, TopUpStatus::Approved, $review);
     }
 
-    public function reject(int $id, Wallet $wallet): void
+    public function reject(int $id, ReviewTopUp $review): void
     {
-        $this->review($id, TopUpStatus::Rejected, $wallet);
+        $this->review($id, TopUpStatus::Rejected, $review);
     }
 
     /**
-     * Lock the request so a double click can never add the money twice.
+     * Bank transfers only: card payments are approved by Paystack's confirmation, never by hand.
      */
-    private function review(int $id, TopUpStatus $decision, Wallet $wallet): void
+    private function review(int $id, TopUpStatus $decision, ReviewTopUp $review): void
     {
-        $admin = Auth::user();
-        $note = trim($this->notes[$id] ?? '');
+        abort_if(TopUpRequest::query()->findOrFail($id)->isCard(), 403);
 
-        $done = DB::transaction(function () use ($id, $decision, $wallet, $admin, $note): ?TopUpRequest {
-            $request = TopUpRequest::query()->whereKey($id)->lockForUpdate()->firstOrFail();
-
-            if ($request->status !== TopUpStatus::Pending) {
-                return null;
-            }
-
-            if ($decision === TopUpStatus::Approved) {
-                $user = User::query()->whereKey($request->user_id)->lockForUpdate()->firstOrFail();
-                $wallet->record($user, $request->amount_cents, WalletTransactionType::TopUp, "Top-up {$request->payment_reference}", by: $admin);
-            }
-
-            $request->update([
-                'status' => $decision,
-                'admin_note' => $note ?: null,
-                'reviewed_by' => $admin->id,
-                'reviewed_at' => now(),
-            ]);
-
-            return $request;
-        });
+        $done = $review->handle($id, $decision, Auth::user(), trim($this->notes[$id] ?? ''));
 
         unset($this->notes[$id]);
 
@@ -118,7 +94,7 @@ new #[Title('Top-ups')] class extends Component {
                     <flux:table.cell>{{ $request->created_at->format('j M Y, H:i') }}</flux:table.cell>
                     <flux:table.cell>{{ $request->user->name }}<div class="text-xs text-zinc-500">{{ $request->user->email }}</div></flux:table.cell>
                     <flux:table.cell class="font-semibold">{{ Money::format($request->amount_cents) }}</flux:table.cell>
-                    <flux:table.cell class="whitespace-normal">{{ $request->payment_reference }}@if ($request->note)<div class="text-xs text-zinc-500">{{ $request->note }}</div>@endif</flux:table.cell>
+                    <flux:table.cell class="whitespace-normal"><flux:badge size="sm" :icon="$request->isCard() ? 'credit-card' : 'building-library'">{{ $request->isCard() ? 'Card' : 'Bank' }}</flux:badge> {{ $request->payment_reference }}@if ($request->note)<div class="text-xs text-zinc-500">{{ $request->note }}</div>@endif</flux:table.cell>
                     <flux:table.cell>
                         <flux:badge size="sm" :color="$request->status->color()">{{ $request->status->label() }}</flux:badge>
                         @if ($request->reviewer)
@@ -126,7 +102,9 @@ new #[Title('Top-ups')] class extends Component {
                         @endif
                     </flux:table.cell>
                     <flux:table.cell>
-                        @if ($request->status === TopUpStatus::Pending)
+                        @if ($request->status === TopUpStatus::Pending && $request->isCard())
+                            <span class="text-xs text-zinc-500">Waiting for the card payment</span>
+                        @elseif ($request->status === TopUpStatus::Pending)
                             <div class="flex items-center justify-end gap-2">
                                 <div class="w-40"><flux:input size="sm" wire:model="notes.{{ $request->id }}" placeholder="Note (optional)" /></div>
                                 <flux:button size="sm" variant="primary" wire:click="approve({{ $request->id }})" wire:confirm="Add {{ Money::format($request->amount_cents) }} to {{ $request->user->name }}'s wallet?">Approve</flux:button>

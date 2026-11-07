@@ -21,7 +21,7 @@ new #[Title('My account')] class extends Component {
     #[Computed]
     public function pendingTopUps(): int
     {
-        return Auth::user()->topUpRequests()->where('status', TopUpStatus::Pending)->count();
+        return Auth::user()->topUpRequests()->bankTransfers()->where('status', TopUpStatus::Pending)->count();
     }
 }; ?>
 

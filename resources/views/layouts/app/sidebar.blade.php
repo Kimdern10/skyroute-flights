@@ -34,7 +34,7 @@
                         <flux:sidebar.item icon="paper-airplane" :href="route('admin.flights')" :current="request()->routeIs('admin.flights')" wire:navigate>
                             {{ __('Flights & seats') }}
                         </flux:sidebar.item>
-                        <flux:sidebar.item icon="banknotes" :href="route('admin.top-ups')" :current="request()->routeIs('admin.top-ups')" wire:navigate :badge="\App\Models\TopUpRequest::query()->where('status', 'pending')->count() ?: null">
+                        <flux:sidebar.item icon="banknotes" :href="route('admin.top-ups')" :current="request()->routeIs('admin.top-ups')" wire:navigate :badge="\App\Models\TopUpRequest::query()->bankTransfers()->where('status', 'pending')->count() ?: null">
                             {{ __('Top-ups') }}
                         </flux:sidebar.item>
                         <flux:sidebar.item icon="users" :href="route('admin.customers')" :current="request()->routeIs('admin.customers')" wire:navigate>

@@ -101,7 +101,11 @@
                     </ul>
                 </div>
             </div>
-            <div class="container footer-bottom">© {{ now()->year }} {{ $site['business_name'] }}. Prices in US dollars. Fares come live from the airlines.</div>
+            <div class="container footer-bottom">
+                © {{ now()->year }} {{ $site['business_name'] }}. Prices in US dollars. Fares come live from the airlines.
+                · <a href="{{ route('terms') }}" wire:navigate.hover>Terms</a>
+                · <a href="{{ route('privacy') }}" wire:navigate.hover>Privacy policy</a>
+            </div>
         </footer>
         @livewireScripts
     </body>

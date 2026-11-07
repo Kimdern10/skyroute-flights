@@ -405,6 +405,13 @@ h1, h2, h3, h4 { line-height: 1.15; margin: 0 0 .5em; letter-spacing: -.02em; }
 
 .lookup { max-width: 520px; margin: 0 auto; }
 
+.prose-legal { max-width: 780px; margin: 0 auto; font-size: 16px; }
+.prose-legal h2 { font-size: 20px; margin: 1.6em 0 .5em; }
+.prose-legal p, .prose-legal li { color: var(--muted); }
+.prose-legal strong { color: var(--text); }
+.prose-legal ul { padding-left: 1.2em; }
+.prose-legal li + li { margin-top: 6px; }
+
 /* ---------- Footer ---------- */
 
 .site-footer { background: #061232; color: #c4d2f0; padding: 48px 0 24px; margin-top: 40px; }

@@ -2,9 +2,11 @@
 
 use App\Enums\TopUpStatus;
 use App\Models\Setting;
+use App\Services\Paystack;
 use App\Support\Money;
 use Flux\Flux;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Title;
 use Livewire\Component;
@@ -19,6 +21,8 @@ new #[Title('Wallet')] class extends Component {
 
     public string $note = '';
 
+    public string $cardAmount = '';
+
     public function requestTopUp(): void
     {
         $validated = $this->validate([
@@ -29,7 +33,7 @@ new #[Title('Wallet')] class extends Component {
 
         $user = Auth::user();
 
-        if ($user->topUpRequests()->where('status', TopUpStatus::Pending)->count() >= 3) {
+        if ($user->topUpRequests()->bankTransfers()->where('status', TopUpStatus::Pending)->count() >= 3) {
             $this->addError('amount', 'You already have 3 top-ups waiting. Please wait for them to be checked.');
 
             return;
@@ -45,6 +49,53 @@ new #[Title('Wallet')] class extends Component {
         $this->reset('amount', 'paymentReference', 'note');
 
         Flux::toast(variant: 'success', text: 'Thanks! We will add the money once we see your payment.');
+    }
+
+    /**
+     * Start a card top-up and send the customer to Paystack's payment page.
+     */
+    public function payByCard(Paystack $paystack): void
+    {
+        $validated = $this->validate(['cardAmount' => ['required', 'numeric', 'min:10', 'max:5000']], [], ['cardAmount' => 'amount']);
+
+        $user = Auth::user();
+        $amountCents = Money::toCents($validated['cardAmount']);
+        $charge = $paystack->chargeFor($amountCents);
+
+        $topUp = $user->topUpRequests()->create([
+            'method' => 'card',
+            'amount_cents' => $amountCents,
+            'charged_amount' => $charge,
+            'charged_currency' => $paystack->currency(),
+            'payment_reference' => 'SRC-'.Str::upper(Str::random(12)),
+            'status' => TopUpStatus::Pending,
+        ]);
+
+        try {
+            $url = $paystack->initialize($user->email, $charge, $topUp->payment_reference, route('wallet.card.callback'), ['top_up_id' => $topUp->id]);
+        } catch (\RuntimeException $exception) {
+            $topUp->delete();
+            $this->addError('cardAmount', $exception->getMessage());
+
+            return;
+        }
+
+        $this->redirect($url);
+    }
+
+    /**
+     * What the card will be charged, shown before paying (e.g. "₦155,000.00").
+     */
+    #[Computed]
+    public function cardCharge(): ?string
+    {
+        if (! is_numeric($this->cardAmount) || (float) $this->cardAmount <= 0) {
+            return null;
+        }
+
+        $paystack = app(Paystack::class);
+
+        return $paystack->currency().' '.number_format($paystack->chargeFor(Money::toCents($this->cardAmount)) / 100, 2);
     }
 
     #[Computed]
@@ -63,8 +114,15 @@ new #[Title('Wallet')] class extends Component {
 <div class="flex flex-col gap-6">
     <div>
         <flux:heading size="xl">Wallet</flux:heading>
-        <flux:text>Tickets are paid from your wallet. Add money by bank transfer, then tell us about it here.</flux:text>
+        <flux:text>Tickets are paid from your wallet. Add money by card straight away, or by bank transfer.</flux:text>
     </div>
+
+    @if (session('wallet-success'))
+        <flux:callout variant="success" icon="check-circle" :heading="session('wallet-success')" />
+    @endif
+    @if (session('wallet-error'))
+        <flux:callout variant="danger" icon="exclamation-circle" :heading="session('wallet-error')" />
+    @endif
 
     <div class="grid gap-4 lg:grid-cols-5">
         <div class="flex flex-col gap-4 lg:col-span-2">
@@ -73,14 +131,28 @@ new #[Title('Wallet')] class extends Component {
                 <div class="mt-1 text-4xl font-bold" data-test="balance">{{ auth()->user()->balance() }}</div>
             </flux:card>
 
+            @if (app(Paystack::class)->isConfigured())
+                <flux:card>
+                    <flux:heading size="lg">Pay by card</flux:heading>
+                    <flux:text class="mt-1">Added to your wallet as soon as the payment goes through. You pay on Paystack's secure page.</flux:text>
+                    <form wire:submit="payByCard" class="mt-4 flex flex-col gap-4">
+                        <flux:input wire:model.live.debounce.400ms="cardAmount" label="Amount to add (USD)" type="number" step="0.01" min="10" max="5000" icon="currency-dollar" />
+                        @if ($this->cardCharge)
+                            <flux:text size="sm">Your card will be charged <strong>{{ $this->cardCharge }}</strong>.</flux:text>
+                        @endif
+                        <flux:button type="submit" variant="primary" icon="credit-card">Pay with card</flux:button>
+                    </form>
+                </flux:card>
+            @endif
+
             <flux:card>
-                <flux:heading size="lg">Top up</flux:heading>
+                <flux:heading size="lg">Top up by bank transfer</flux:heading>
                 <div class="mt-3 whitespace-pre-line rounded-lg bg-zinc-50 p-3 text-sm dark:bg-zinc-900">{{ Setting::get('top_up_instructions') }}</div>
                 <form wire:submit="requestTopUp" class="mt-4 flex flex-col gap-4">
                     <flux:input wire:model="amount" label="Amount sent (USD)" type="number" step="0.01" min="10" icon="currency-dollar" />
                     <flux:input wire:model="paymentReference" label="Payment reference" description="The reference or transaction ID from your bank." />
                     <flux:textarea wire:model="note" label="Note (optional)" rows="2" />
-                    <flux:button type="submit" variant="primary">Send top-up request</flux:button>
+                    <flux:button type="submit">Send top-up request</flux:button>
                 </form>
             </flux:card>
         </div>
@@ -92,7 +164,7 @@ new #[Title('Wallet')] class extends Component {
                     <div class="mt-3 grid gap-2">
                         @foreach ($this->topUps as $topUp)
                             <div class="flex items-center justify-between gap-3 text-sm">
-                                <span>{{ $topUp->created_at->format('j M Y') }} · {{ Money::format($topUp->amount_cents) }} · {{ $topUp->payment_reference }}</span>
+                                <span>{{ $topUp->created_at->format('j M Y') }} · {{ Money::format($topUp->amount_cents) }} · {{ $topUp->isCard() ? 'Card' : 'Bank' }} {{ $topUp->payment_reference }}</span>
                                 <flux:badge size="sm" :color="$topUp->status->color()">{{ $topUp->status->label() }}</flux:badge>
                             </div>
                             @if ($topUp->admin_note)

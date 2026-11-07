@@ -30,7 +30,7 @@ new #[Title('Admin')] class extends Component {
     #[Computed]
     public function pendingTopUps(): int
     {
-        return TopUpRequest::query()->where('status', TopUpStatus::Pending)->count();
+        return TopUpRequest::query()->bankTransfers()->where('status', TopUpStatus::Pending)->count();
     }
 
     #[Computed]

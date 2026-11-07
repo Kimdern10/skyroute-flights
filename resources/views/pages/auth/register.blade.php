@@ -59,6 +59,12 @@
                     {{ __('Create account') }}
                 </flux:button>
             </div>
+
+            <flux:text class="text-center text-xs">
+                By creating an account you agree to our
+                <flux:link :href="route('terms')" target="_blank">terms</flux:link> and
+                <flux:link :href="route('privacy')" target="_blank">privacy policy</flux:link>.
+            </flux:text>
         </form>
 
         <div class="space-x-1 rtl:space-x-reverse text-center text-sm text-zinc-600 dark:text-zinc-400">

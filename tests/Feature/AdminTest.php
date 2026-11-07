@@ -8,6 +8,8 @@ use App\Models\Passenger;
 use App\Models\Setting;
 use App\Models\TopUpRequest;
 use App\Models\User;
+use App\Notifications\TopUpReviewed;
+use Illuminate\Support\Facades\Notification;
 use Livewire\Livewire;
 
 test('customers cannot open the admin', function (string $route) {
@@ -31,6 +33,7 @@ test('the admin can open any booking', function () {
 });
 
 test('approving a top-up adds the money once', function () {
+    Notification::fake();
     $request = TopUpRequest::factory()->create(['amount_cents' => 50000]);
     $admin = User::factory()->admin()->create();
 
@@ -41,9 +44,11 @@ test('approving a top-up adds the money once', function () {
         ->and($request->fresh()->status)->toBe(TopUpStatus::Approved)
         ->and($request->fresh()->reviewed_by)->toBe($admin->id);
     $this->assertDatabaseCount('wallet_transactions', 1);
+    Notification::assertSentToTimes($request->user, TopUpReviewed::class, 1);
 });
 
-test('rejecting a top-up adds nothing and keeps the note for the customer', function () {
+test('rejecting a top-up adds nothing and emails the note to the customer', function () {
+    Notification::fake();
     $request = TopUpRequest::factory()->create();
 
     Livewire::actingAs(User::factory()->admin()->create())
@@ -54,6 +59,31 @@ test('rejecting a top-up adds nothing and keeps the note for the customer', func
     expect($request->fresh()->status)->toBe(TopUpStatus::Rejected)
         ->and($request->fresh()->admin_note)->toBe('No transfer found.')
         ->and($request->user->fresh()->balance_cents)->toBe(0);
+    Notification::assertSentTo($request->user, TopUpReviewed::class, function (TopUpReviewed $notification) use ($request) {
+        return str_contains(implode(' ', $notification->toMail($request->user)->introLines), 'No transfer found.');
+    });
+});
+
+test('the admin saves the Paystack key, stored encrypted', function () {
+    Livewire::actingAs(User::factory()->admin()->create())
+        ->test('pages::admin.settings')
+        ->set('paystack_secret', 'sk_test_abc123')
+        ->set('paystack_rate', '1600')
+        ->call('save')
+        ->assertHasNoErrors()
+        ->assertSet('hasPaystack', true);
+
+    expect(Setting::get('paystack_secret'))->toBe('sk_test_abc123')
+        ->and(Setting::get('paystack_rate'))->toBe('1600');
+    $this->assertDatabaseMissing('settings', ['value' => 'sk_test_abc123']);
+});
+
+test('a Paystack public key is refused', function () {
+    Livewire::actingAs(User::factory()->admin()->create())
+        ->test('pages::admin.settings')
+        ->set('paystack_secret', 'pk_test_123')
+        ->call('save')
+        ->assertHasErrors('paystack_secret');
 });
 
 test('the admin can adjust a balance but not below zero', function () {
