@@ -28,10 +28,11 @@ class VerifyEmailCode extends Notification
 
         return (new MailMessage)
             ->subject("{$this->code} is your {$business} code")
-            ->greeting('Confirm your email')
-            ->line('Enter this code on the SkyRoute page to confirm your email address:')
-            ->line("**{$this->code}**")
-            ->line("The code works for {$this->minutes} minutes.")
-            ->line('If you did not create an account, you can ignore this email.');
+            ->markdown('mail.verify-email-code', [
+                'code' => $this->code,
+                'minutes' => $this->minutes,
+                'business' => $business,
+                'name' => (string) ($notifiable->name ?? ''),
+            ]);
     }
 }

@@ -31,7 +31,7 @@ class BookingConfirmed extends Mailable
     public function content(): Content
     {
         return new Content(
-            view: 'mail.booking-confirmed',
+            markdown: 'mail.booking-confirmed',
             with: ['site' => Setting::values()],
         );
     }

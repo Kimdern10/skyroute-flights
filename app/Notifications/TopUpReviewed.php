@@ -49,6 +49,7 @@ class TopUpReviewed extends Notification
             $message->line('Note: '.$this->topUp->admin_note);
         }
 
-        return $message->action('Open my wallet', route('wallet'));
+        return $message->action('Open my wallet', route('wallet'))
+            ->salutation("Safe travels,\nThe ".Setting::get('business_name').' team');
     }
 }
