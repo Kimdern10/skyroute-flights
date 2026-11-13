@@ -46,11 +46,11 @@ new #[Title('My account')] class extends Component {
         <flux:card class="md:col-span-2">
             <div class="flex items-center justify-between">
                 <flux:heading size="lg">Upcoming trips</flux:heading>
-                <flux:button size="sm" variant="primary" :href="route('flights.index')" icon="magnifying-glass">Search flights</flux:button>
+                <flux:button size="sm" variant="primary" :href="route('flights.index')" icon="magnifying-glass" wire:navigate>Search flights</flux:button>
             </div>
             <div class="mt-4 grid gap-3">
                 @forelse ($this->upcoming as $booking)
-                    <a href="{{ route('bookings.show', $booking) }}" class="flex items-center justify-between gap-4 rounded-lg border border-zinc-200 p-3 hover:bg-zinc-50 dark:border-zinc-700 dark:hover:bg-zinc-800">
+                    <a href="{{ route('bookings.show', $booking) }}" wire:navigate class="flex items-center justify-between gap-4 rounded-lg border border-zinc-200 p-3 hover:bg-zinc-50 dark:border-zinc-700 dark:hover:bg-zinc-800">
                         <div>
                             <div class="font-semibold">{{ $booking->origin }} → {{ $booking->destination }}</div>
                             <flux:text size="sm">{{ $booking->departs_at->format('D j M Y, H:i') }} · {{ $booking->carrier_name }}</flux:text>

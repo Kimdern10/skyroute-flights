@@ -160,7 +160,7 @@ new class extends Component {
             <div class="notice" style="margin-bottom: 60px">
                 <h2>This fare is no longer available</h2>
                 <p>{{ $this->error ?? 'Airline fares only last a short time. Please search again to see the latest prices.' }}</p>
-                <a class="btn btn--primary" href="{{ route('flights.index') }}">Search again</a>
+                <a class="btn btn--primary" href="{{ route('flights.index') }}" wire:navigate>Search again</a>
             </div>
         @else
             @php
@@ -257,7 +257,7 @@ new class extends Component {
                         <p class="muted">This fare cannot be priced right now.</p>
                     @elseif ($short > 0)
                         <div class="alert" style="margin-top: 12px">You need {{ \App\Support\Money::format($short) }} more in your wallet to book this flight.</div>
-                        <a class="btn btn--primary btn--block" href="{{ route('wallet') }}">Top up my wallet</a>
+                        <a class="btn btn--primary btn--block" href="{{ route('wallet') }}" wire:navigate>Top up my wallet</a>
                     @else
                         @if ($seatsLeft <= 5)
                             <span class="badge badge--low">Only {{ $seatsLeft }} {{ str('seat')->plural($seatsLeft) }} left</span>

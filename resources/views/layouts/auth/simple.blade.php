@@ -20,7 +20,7 @@
                     </path>
                 </svg>
 
-                <a href="{{ route('home') }}" class="relative flex items-center gap-3 text-xl font-extrabold">
+                <a href="{{ route('home') }}" wire:navigate class="relative flex items-center gap-3 text-xl font-extrabold">
                     <x-site-logo class="size-10" />
                     {{ \App\Models\Setting::get('business_name') }}
                 </a>
@@ -39,13 +39,13 @@
             {{-- Form side --}}
             <main class="flex flex-col p-6 md:p-10">
                 <nav class="flex items-center justify-between gap-3" aria-label="Site">
-                    <a href="{{ route('home') }}" class="flex items-center gap-2 text-lg font-extrabold text-zinc-900 lg:invisible dark:text-white">
+                    <a href="{{ route('home') }}" wire:navigate class="flex items-center gap-2 text-lg font-extrabold text-zinc-900 lg:invisible dark:text-white">
                         <x-site-logo class="size-9" />
                         {{ \App\Models\Setting::get('business_name') }}
                     </a>
                     <div class="flex items-center gap-1">
-                        <flux:button variant="ghost" size="sm" icon="home" :href="route('home')">Home</flux:button>
-                        <flux:button variant="ghost" size="sm" icon="paper-airplane" :href="route('flights.index')">Flights</flux:button>
+                        <flux:button variant="ghost" size="sm" icon="home" :href="route('home')" wire:navigate>Home</flux:button>
+                        <flux:button variant="ghost" size="sm" icon="paper-airplane" :href="route('flights.index')" wire:navigate>Flights</flux:button>
                     </div>
                 </nav>
 

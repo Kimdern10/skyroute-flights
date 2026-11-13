@@ -52,14 +52,14 @@
                         <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
                     </button>
                     @if ($user)
-                        <a class="wallet-chip" href="{{ route('wallet') }}" title="Wallet balance">
+                        <a class="wallet-chip" href="{{ route('wallet') }}" wire:navigate title="Wallet balance">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="6" width="18" height="13" rx="3"/><path d="M16 12.5h2M3 9h18"/></svg>
                             {{ $user->balance() }}
                         </a>
-                        <a class="btn btn--primary btn--sm" href="{{ $user->is_admin ? route('admin.dashboard') : route('dashboard') }}">{{ $user->is_admin ? 'Admin' : 'Account' }}</a>
+                        <a class="btn btn--primary btn--sm" href="{{ $user->is_admin ? route('admin.dashboard') : route('dashboard') }}" wire:navigate>{{ $user->is_admin ? 'Admin' : 'Account' }}</a>
                     @else
-                        <a class="btn btn--ghost btn--sm hide-sm" href="{{ route('login') }}">Log in</a>
-                        <a class="btn btn--primary btn--sm" href="{{ route('register') }}">Sign up</a>
+                        <a class="btn btn--ghost btn--sm hide-sm" href="{{ route('login') }}" wire:navigate>Log in</a>
+                        <a class="btn btn--primary btn--sm" href="{{ route('register') }}" wire:navigate>Sign up</a>
                     @endif
                     <button class="icon-btn menu-toggle" type="button" data-menu-toggle aria-label="Open menu" aria-expanded="false" aria-controls="mobile-menu"><span></span><span></span></button>
                 </div>
@@ -71,9 +71,9 @@
                 <a href="{{ $href }}" wire:navigate.hover>{{ $label }}</a>
             @endforeach
             @if ($user)
-                <a href="{{ route('wallet') }}">Wallet · {{ $user->balance() }}</a>
+                <a href="{{ route('wallet') }}" wire:navigate>Wallet · {{ $user->balance() }}</a>
             @else
-                <a href="{{ route('login') }}">Log in</a>
+                <a href="{{ route('login') }}" wire:navigate>Log in</a>
             @endif
         </nav>
 
@@ -92,7 +92,7 @@
                     <ul>
                         <li><a href="{{ route('flights.index') }}" wire:navigate.hover>Search flights</a></li>
                         <li><a href="{{ route('my-booking') }}" wire:navigate.hover>Find my booking</a></li>
-                        <li><a href="{{ route('wallet') }}">Top up my wallet</a></li>
+                        <li><a href="{{ route('wallet') }}" wire:navigate>Top up my wallet</a></li>
                     </ul>
                 </div>
                 <div>

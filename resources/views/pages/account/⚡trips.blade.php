@@ -42,7 +42,7 @@ new #[Title('My trips')] class extends Component {
                     <flux:table.cell>{{ \App\Support\Money::format($booking->total_cents) }}</flux:table.cell>
                     <flux:table.cell><flux:badge size="sm" :color="$booking->status->color()">{{ $booking->status->label() }}</flux:badge></flux:table.cell>
                     <flux:table.cell>
-                        <flux:button size="sm" :href="route('bookings.show', $booking)">View</flux:button>
+                        <flux:button size="sm" :href="route('bookings.show', $booking)" wire:navigate>View</flux:button>
                     </flux:table.cell>
                 </flux:table.row>
             @empty

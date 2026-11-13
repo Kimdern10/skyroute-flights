@@ -278,7 +278,7 @@ new class extends Component {
                                     @elseif ($tooFew)
                                         <button class="btn btn--ghost btn--sm" type="button" disabled>Not enough seats</button>
                                     @else
-                                        <a class="btn btn--primary btn--sm" href="{{ route('flights.book', $offer->id) }}">Book now</a>
+                                        <a class="btn btn--primary btn--sm" href="{{ route('flights.book', $offer->id) }}" wire:navigate>Book now</a>
                                     @endif
                                 </div>
                             </article>

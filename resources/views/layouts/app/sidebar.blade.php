@@ -50,10 +50,10 @@
             <flux:spacer />
 
             <flux:sidebar.nav>
-                <flux:sidebar.item icon="magnifying-glass" :href="route('flights.index')">
+                <flux:sidebar.item icon="magnifying-glass" :href="route('flights.index')" wire:navigate>
                     {{ __('Search flights') }}
                 </flux:sidebar.item>
-                <flux:sidebar.item icon="globe-alt" :href="route('home')">
+                <flux:sidebar.item icon="globe-alt" :href="route('home')" wire:navigate>
                     {{ __('Back to website') }}
                 </flux:sidebar.item>
             </flux:sidebar.nav>
